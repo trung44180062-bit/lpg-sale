@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LPG Sale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f0f2f5;--card:#fff;--tx:#1a1d23;--tx2:#5f6980;--tx3:#8e99af;
+  --pri:#2563eb;--pri-l:#dbeafe;--pri-d:#1d4ed8;
+  --ok:#16a34a;--ok-bg:#dcfce7;--ok-bd:#86efac;
+  --no:#dc2626;--no-bg:#fee2e2;--no-bd:#fca5a5;
+  --warn:#f59e0b;--warn-bg:#fef3c7;
+  --bd:#e2e6ee;--sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --sh2:0 8px 32px rgba(0,0,0,.12);
+  --r:14px;--r-sm:10px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--tx);overflow:hidden}
+
+/* ═══ HEADER ═══ */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:calc(var(--safe-top) + 8px) 16px 0;
+  background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
+  transition:box-shadow .2s;
+}
+.header.scrolled{box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.header-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.app-logo{
+  width:36px;height:36px;border-radius:10px;
+  background:rgba(255,255,255,.15);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;
+}
+.app-title{flex:1;color:#fff;font-size:17px;font-weight:700;letter-spacing:-.2px}
+.app-subtitle{color:rgba(255,255,255,.6);font-size:10px;font-weight:500;display:block;margin-top:1px}
+.header-badge{
+  padding:4px 10px;border-radius:20px;
+  background:rgba(255,255,255,.15);backdrop-filter:blur(8px);
+  color:#fff;font-size:11px;font-weight:700;
+}
+.conn-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.conn-dot.on{background:#4ade80;box-shadow:0 0 6px #4ade80}
+.conn-dot.off{background:#f87171}
+
+/* ═══ SEARCH BAR ═══ */
+.search-wrap{
+  position:relative;margin-bottom:12px;
+}
+.search-input{
+  width:100%;height:42px;border:none;border-radius:12px;
+  background:rgba(255,255,255,.12);backdrop-filter:blur(8px);
+  padding:0 14px 0 40px;
+  color:#fff;font-family:inherit;font-size:14px;font-weight:500;
+  outline:none;transition:background .2s;
+}
+.search-input::placeholder{color:rgba(255,255,255,.45)}
+.search-input:focus{background:rgba(255,255,255,.2)}
+.search-icon{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:rgba(255,255,255,.5);font-size:16px;pointer-events:none;
+}
+.search-clear{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.2);color:#fff;font-size:14px;
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+}
+.search-clear.vis{display:flex}
+
+/* ═══ STATS BAR ═══ */
+.stats-bar{
+  display:flex;gap:6px;padding-bottom:12px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-chip{
+  flex-shrink:0;padding:5px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;cursor:pointer;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);
+  border:1px solid rgba(255,255,255,.18);transition:all .15s;white-space:nowrap;
+}
+.stat-chip .chip-count{
+  display:inline-block;min-width:16px;height:16px;line-height:16px;
+  text-align:center;border-radius:8px;margin-left:4px;padding:0 4px;
+  background:rgba(255,255,255,.22);font-size:10px;font-weight:700;color:inherit;
+}
+
+/* Per-status colors — đồng bộ với LPG station (sbtn-*) */
+.stat-chip.sc-all{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.stat-chip.sc-pending{background:rgba(148,163,184,.22);color:#e2e8f0;border-color:rgba(203,213,225,.4)}
+.stat-chip.sc-entered{background:#bbdefb;color:#0d47a1;border-color:#42a5f5}
+.stat-chip.sc-entered .chip-count{background:rgba(13,71,161,.2);color:#0d47a1}
+.stat-chip.sc-loading{background:#ffe0b2;color:#bf360c;border-color:#ffa726}
+.stat-chip.sc-loading .chip-count{background:rgba(191,54,12,.2);color:#bf360c}
+.stat-chip.sc-done{background:#e0e0e0;color:#616161;border-color:#bdbdbd}
+.stat-chip.sc-done .chip-count{background:rgba(97,97,97,.2);color:#616161}
+.stat-chip.sc-cancel{background:#fdecea;color:#d62839;border-color:#ef9a9a}
+.stat-chip.sc-cancel .chip-count{background:rgba(214,40,57,.18);color:#d62839}
+
+/* Active: ring + scale */
+.stat-chip.active{
+  box-shadow:0 0 0 2px rgba(255,255,255,.55);
+  transform:scale(1.04);font-weight:700;
+}
+
+/* ═══ CONTENT ═══ */
+.content{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  padding-top:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.content-inner{padding:0 12px calc(var(--safe-bot) + 20px)}
+
+/* ═══ GROUP HEADER ═══ */
+.group-header{
+  position:sticky;top:0;z-index:10;
+  padding:10px 4px 6px;
+  font-size:13px;font-weight:700;color:var(--tx2);
+  background:var(--bg);
+  display:flex;align-items:center;gap:6px;
+}
+.group-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.group-count{font-size:10px;font-weight:600;color:var(--tx3);margin-left:auto}
+
+/* ═══ ORDER CARD ═══ */
+/* ═══ GRID TABLE — compact like LPG station today plan ═══ */
+.plan-grid{
+  background:var(--card);border-radius:8px;overflow:hidden;
+  border:1px solid var(--bd);margin-bottom:6px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.pg-head{
+  display:grid;grid-template-columns:1.7fr 1.1fr 56px 56px 54px;
+  gap:4px;padding:5px 6px;background:#f1f5f9;
+  font-size:9px;font-weight:700;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:2;
+}
+.pg-head>div{text-align:center}
+.pg-head>div:first-child{text-align:left;padding-left:2px}
+
+.pg-group{
+  padding:4px 7px;background:#e8f0fe;color:#1e3a5f;
+  font-size:10.5px;font-weight:700;
+  border-top:1px solid var(--bd);display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.pg-group:first-child{border-top:none}
+.pg-group-qty{margin-left:auto;font-size:10px;color:var(--pri-d);background:#fff;padding:1px 5px;border-radius:3px}
+.pg-group-type{font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:#fff;color:var(--tx2);border:1px solid var(--bd)}
+
+.pg-row{
+  display:grid;grid-template-columns:1.7fr 1.1fr 56px 56px 54px;
+  gap:4px;padding:5px 6px;border-top:1px solid #f0f3f7;
+  font-size:11px;align-items:center;
+}
+.pg-row:first-child{border-top:none}
+.pg-row.st-loading{background:#fffbeb;border-left:3px solid var(--warn)}
+.pg-row.st-entered{background:#eff6ff;border-left:3px solid var(--pri)}
+.pg-row.st-done{opacity:.55}
+.pg-row.st-cancel{opacity:.4;text-decoration:line-through}
+
+/* Col 1: plate + driver stacked */
+.pg-c1{display:flex;flex-direction:column;gap:1px;min-width:0}
+.pg-plate{font-size:11.5px;font-weight:800;color:var(--tx);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-plate .pg-stt{font-size:8px;font-weight:700;padding:0 4px;border-radius:3px;margin-left:3px;vertical-align:middle;letter-spacing:.3px}
+.pg-stt.st-entered{background:#dbeafe;color:#2563eb}
+.pg-stt.st-loading{background:#fef3c7;color:#d97706}
+.pg-stt.st-done{background:#dcfce7;color:#16a34a}
+.pg-stt.st-cancel{background:#fee2e2;color:#dc2626}
+.pg-driver{font-size:10px;color:var(--tx2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Col 2: qty / actual */
+.pg-c2{display:flex;flex-direction:column;gap:1px;text-align:right}
+.pg-qty{font-size:11px;font-weight:700;color:var(--tx);font-family:'JetBrains Mono',monospace}
+.pg-actual{font-size:9.5px;color:var(--ok);font-weight:600;font-family:'JetBrains Mono',monospace}
+.pg-actual.none{color:var(--tx3);font-weight:400}
+
+/* Col 3,4: Gate/Load chips */
+.pg-perm{
+  text-align:center;padding:4px 0;border-radius:5px;
+  font-size:10px;font-weight:700;letter-spacing:.3px;
+  cursor:pointer;user-select:none;transition:transform .1s;
+  border:1px solid transparent;
+}
+.pg-perm:active{transform:scale(.92)}
+.pg-perm.saving{opacity:.5;pointer-events:none}
+.pg-ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-bd)}
+.pg-no{background:var(--no-bg);color:var(--no);border-color:var(--no-bd)}
+.pg-blank{background:#f8fafc;color:var(--tx3);border-color:var(--bd)}
+
+/* Col 5: DO short */
+.pg-do{font-size:9.5px;font-weight:600;color:var(--tx3);text-align:center;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.pg-empty{padding:30px;text-align:center;color:var(--tx3);font-size:12px}
+
+/* ═══ EMPTY STATE ═══ */
+.empty-state{
+  text-align:center;padding:60px 20px;
+}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.4}
+.empty-text{font-size:14px;color:var(--tx3);font-weight:500}
+
+/* ═══ EDIT MODAL ═══ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center;
+  animation:fadeIn .2s;
+}
+.modal-overlay.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+.modal-sheet{
+  width:100%;max-width:500px;max-height:90vh;
+  background:var(--card);border-radius:20px 20px 0 0;
+  padding:0 0 calc(var(--safe-bot) + 16px);
+  animation:slideUp .3s cubic-bezier(.32,.72,0,1);
+  overflow-y:auto;
+}
+.modal-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:#d1d5db;margin:10px auto 0;
+}
+.modal-header{
+  padding:16px 20px 12px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;background:var(--card);z-index:1;
+}
+.modal-title{flex:1;font-size:16px;font-weight:700}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:#f1f5f9;font-size:16px;color:var(--tx2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-body{padding:0 20px}
+
+.field-group{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.field-value{
+  width:100%;height:44px;border:1.5px solid var(--bd);border-radius:var(--r-sm);
+  padding:0 12px;font-family:inherit;font-size:14px;font-weight:500;
+  color:var(--tx);outline:none;background:#f8fafc;
+  transition:border-color .15s;
+}
+.field-value:focus{border-color:var(--pri);background:#fff}
+.field-value[readonly]{background:#f1f5f9;color:var(--tx3)}
+
+.perm-group{margin-bottom:16px}
+.perm-group-label{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.perm-toggle-row{display:flex;gap:8px}
+.perm-toggle{
+  flex:1;padding:12px 0;border-radius:var(--r-sm);
+  text-align:center;font-size:13px;font-weight:700;
+  border:2px solid var(--bd);background:#f8fafc;color:var(--tx3);
+  cursor:pointer;transition:all .15s;
+}
+.perm-toggle.sel-ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+.perm-toggle.sel-no{border-color:var(--no);background:var(--no-bg);color:var(--no)}
+
+.modal-actions{
+  display:flex;gap:10px;padding:16px 20px 0;
+}
+.btn-save{
+  flex:1;height:48px;border:none;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--pri),var(--pri-d));
+  color:#fff;font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:.3px;
+  transition:opacity .15s;
+}
+.btn-save:active{opacity:.85}
+.btn-cancel{
+  height:48px;padding:0 20px;border:1.5px solid var(--bd);border-radius:var(--r-sm);
+  background:var(--card);color:var(--tx2);font-family:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;
+}
+
+/* ═══ TOAST ═══ */
+.toast-wrap{
+  position:fixed;top:calc(var(--safe-top) + 8px);left:12px;right:12px;z-index:300;
+  pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.toast-msg{
+  padding:10px 16px;border-radius:12px;
+  font-size:13px;font-weight:600;
+  box-shadow:var(--sh2);pointer-events:auto;
+  animation:toastIn .3s ease;
+  max-width:90%;text-align:center;
+}
+.toast-msg.ok{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+.toast-msg.er{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
+.toast-msg.info{background:#dbeafe;color:#2563eb;border:1px solid #93c5fd}
+@keyframes toastIn{from{transform:translateY(-20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes toastOut{to{transform:translateY(-20px);opacity:0}}
+
+/* ═══ PULL TO REFRESH ═══ */
+.ptr-indicator{
+  position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);
+  width:36px;height:36px;border-radius:50%;
+  background:var(--card);box-shadow:var(--sh2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;z-index:50;
+  opacity:0;transition:opacity .2s,transform .2s;
+}
+.ptr-indicator.vis{opacity:1}
+.ptr-indicator.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header" id="header">
+  <div class="header-top">
+    <div class="app-logo">S</div>
+    <div class="app-title">
+      LPG Sale
+      <span class="app-subtitle">Hyosung Vina — Today Plan</span>
+    </div>
+    <div class="header-badge">
+      <span class="conn-dot off" id="connDot"></span>
+      <span id="connText">...</span>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Tìm biển số, tài xế, DO, khách hàng..." autocomplete="off">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</div>
+
+<!-- PTR -->
+<div class="ptr-indicator" id="ptrInd">↻</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+  <div class="content-inner" id="cardList">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">Đang tải dữ liệu...</div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Chỉnh sửa đơn hàng</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <div class="field-label">Khách hàng</div>
+        <input class="field-value" id="fCustomer" readonly>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Biển số xe</div>
+        <input class="field-value" id="fPlate" readonly>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Rmooc</div>
+        <input class="field-value" id="fRmooc" readonly>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tài xế</div>
+        <input class="field-value" id="fDriver" readonly>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Số DO</div>
+        <input class="field-value" id="fDO" readonly>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Khối lượng (MT)</div>
+        <input class="field-value" id="fQty" type="text" inputmode="decimal">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Dung sai (Tolerance)</div>
+        <input class="field-value" id="fTol" type="text" inputmode="decimal">
+      </div>
+      <div class="perm-group">
+        <div class="perm-group-label">Allow Gate</div>
+        <div class="perm-toggle-row">
+          <div class="perm-toggle" data-field="allowGate" data-val="OK" onclick="togglePerm(this)">✓ OK</div>
+          <div class="perm-toggle" data-field="allowGate" data-val="NO" onclick="togglePerm(this)">✕ NO</div>
+        </div>
+      </div>
+      <div class="perm-group">
+        <div class="perm-group-label">Allow Load</div>
+        <div class="perm-toggle-row">
+          <div class="perm-toggle" data-field="allowLoad" data-val="OK" onclick="togglePerm(this)">✓ OK</div>
+          <div class="perm-toggle" data-field="allowLoad" data-val="NO" onclick="togglePerm(this)">✕ NO</div>
+        </div>
+      </div>
+      <div class="perm-group">
+        <div class="perm-group-label">Allow Out</div>
+        <div class="perm-toggle-row">
+          <div class="perm-toggle" data-field="allowOut" data-val="OK" onclick="togglePerm(this)">✓ OK</div>
+          <div class="perm-toggle" data-field="allowOut" data-val="NO" onclick="togglePerm(this)">✕ NO</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Ghi chú (Note)</div>
+        <input class="field-value" id="fNote" type="text" placeholder="Nhập ghi chú...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Hủy</button>
+      <button class="btn-save" id="btnSave" onclick="saveChanges()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+'use strict';
+
+/* ═══ FIREBASE CONFIG — same as lpg-station ═══ */
+firebase.initializeApp({
+  apiKey: 'AIzaSyDBqAzRo1FpDt7UmzKa5jkQfCOOMw0vFSc',
+  databaseURL: 'https://tlb-call-default-rtdb.firebaseio.com',
+  projectId: 'tlb-call',
+  authDomain: 'tlb-call.firebaseapp.com',
+  storageBucket: 'tlb-call.appspot.com'
+});
+const FD = firebase.database();
+
+/* ═══ STATE ═══ */
+let PLAN = [];
+let editingId = null;
+let editOriginal = {};
+let activeFilter = '';
+let connected = false;
+
+/* ═══ CONNECTION STATUS ═══ */
+FD.ref('.info/connected').on('value', s => {
+  connected = !!s.val();
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connText');
+  dot.className = 'conn-dot ' + (connected ? 'on' : 'off');
+  txt.textContent = connected ? 'Online' : 'Offline';
+});
+
+/* ═══ REAL-TIME LISTENER ═══ */
+FD.ref('plan_today').on('value', snap => {
+  const val = snap.val();
+  PLAN = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+  PLAN.forEach(r => {
+    if(r.allowOut !== 'OK' && r.allowOut !== 'NO') r.allowOut = 'OK';
+  });
+  render();
+});
+
+/* ═══ HELPERS ═══ */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+function toast(msg, cls){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast-msg ' + (cls||'info');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.animation = 'toastOut .3s ease forwards'; }, 2500);
+  setTimeout(() => { el.remove(); }, 2800);
+}
+
+/* ═══ SEARCH ═══ */
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+searchInput.addEventListener('input', () => {
+  searchClear.classList.toggle('vis', !!searchInput.value);
+  render();
+});
+function clearSearch(){
+  searchInput.value = '';
+  searchClear.classList.remove('vis');
+  render();
+  searchInput.focus();
+}
+
+/* ═══ FILTER CHIPS ═══ */
+function setFilter(f){
+  activeFilter = (activeFilter === f) ? '' : f;
+  render();
+}
+
+/* ═══ RENDER ═══ */
+/* ═══ v310: Diacritic-insensitive normalize (giống mobile/station)
+   Fix: tìm "lê quí tuấn" ra "Lê Qúi Tuấn", "dang" ra "Đặng", ... */
+function _vnNorm(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'d').toLowerCase().trim();
+}
+
+function render(){
+  const q = _vnNorm(searchInput.value||'');
+  let filtered = PLAN.slice();
+
+  // Text search — diacritic-insensitive
+  if(q){
+    filtered = filtered.filter(r =>
+      _vnNorm((r.plate||'')+' '+(r.driver||'')+' '+(r.customer||'')+' '+(r.doNum||'')+' '+(r.romooc||'')+' '+(r.no||'')+' '+(r.note||'')+' '+(r.type||''))
+      .includes(q)
+    );
+  }
+
+  // Status filter
+  if(activeFilter){
+    if(activeFilter === 'pending') filtered = filtered.filter(r => !r._status);
+    else filtered = filtered.filter(r => r._status === activeFilter);
+  }
+
+  // Stats
+  renderStats();
+
+  const list = document.getElementById('cardList');
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">${q || activeFilter ? '🔍' : '📋'}</div>
+      <div class="empty-text">${q || activeFilter ? 'Không tìm thấy đơn hàng phù hợp' : 'Chưa có đơn hàng hôm nay'}</div>
+    </div>`;
+    return;
+  }
+
+  // Group by customer+type → grid table
+  let html = '<div class="plan-grid">';
+  html += '<div class="pg-head"><div>Plate · Driver</div><div style="text-align:right">Qty / Actual</div><div>Gate</div><div>Load</div><div>DO</div></div>';
+  let lastGroup = '';
+
+  filtered.forEach(r => {
+    const gKey = (r.customer||'—') + '|' + (r.type||'');
+    if(gKey !== lastGroup){
+      lastGroup = gKey;
+      const grpRows = filtered.filter(x => ((x.customer||'—')+'|'+(x.type||'')) === gKey);
+      const sumQty = grpRows.reduce((s,x)=> s + (parseFloat(x.qty)||0), 0);
+      const custShort = (r.customer||'—').replace(/\s*\([^)]*\)\s*/g,'').trim() || (r.customer||'—');
+      html += `<div class="pg-group">
+        <span>${esc(custShort)}</span>
+        ${r.type ? `<span class="pg-group-type">${esc(r.type).toUpperCase()}</span>` : ''}
+        <span class="pg-group-qty">${grpRows.length} xe${sumQty>0?' · '+sumQty.toFixed(0)+' MT':''}</span>
+      </div>`;
+    }
+
+    const stKey = r._status || '';
+    const stCls = stKey ? 'st-'+stKey : '';
+    const stLbl = stKey === 'entered' ? 'ENT' : stKey === 'loading' ? 'LOAD' : stKey === 'done' ? 'DONE' : stKey === 'cancel' ? 'CXL' : '';
+    const stBadge = stLbl ? `<span class="pg-stt st-${stKey}">${stLbl}</span>` : '';
+
+    const permCls = (v) => v === 'OK' ? 'pg-ok' : v === 'NO' ? 'pg-no' : 'pg-blank';
+    const permTxt = (v) => v === 'OK' ? '✓ OK' : v === 'NO' ? '✕ NO' : '—';
+
+    const qty = parseFloat(r.qty)||0;
+    const actual = parseFloat(r._actualQty || r.actualQty || 0);
+    const actualStr = actual > 0 ? (actual/1000).toFixed(2) : '—';
+
+    // DO shortened: last 5 digits
+    const doStr = (r.doNum||'').trim();
+    const doShort = doStr ? (doStr.length > 6 ? '…'+doStr.slice(-5) : doStr) : '—';
+
+    html += `<div class="pg-row ${stCls}">
+      <div class="pg-c1">
+        <div class="pg-plate">${esc(r.plate)||'—'}${stBadge}</div>
+        <div class="pg-driver">${esc(r.driver)||'—'}</div>
+      </div>
+      <div class="pg-c2">
+        <div class="pg-qty">${qty>0 ? qty.toFixed(0) : '—'}</div>
+        <div class="pg-actual ${actual>0?'':'none'}">${actual>0?actualStr:'—'}</div>
+      </div>
+      <div class="pg-perm ${permCls(r.allowGate)}" onclick="quickToggle(event,${r._id},'allowGate')">${permTxt(r.allowGate)}</div>
+      <div class="pg-perm ${permCls(r.allowLoad)}" onclick="quickToggle(event,${r._id},'allowLoad')">${permTxt(r.allowLoad)}</div>
+      <div class="pg-do" title="${esc(doStr)}">${esc(doShort)}</div>
+    </div>`;
+  });
+
+  html += '</div>';
+  list.innerHTML = html;
+}
+
+function renderStats(){
+  const total = PLAN.length;
+  const counts = {pending:0, entered:0, loading:0, done:0, cancel:0};
+  PLAN.forEach(r => {
+    if(!r._status) counts.pending++;
+    else if(counts[r._status] !== undefined) counts[r._status]++;
+  });
+  const bar = document.getElementById('statsBar');
+  const chips = [
+    {key:'',        cls:'sc-all',     label:'Tất cả',  count:total},
+    {key:'pending', cls:'sc-pending', label:'Chờ',     count:counts.pending},
+    {key:'entered', cls:'sc-entered', label:'Entered', count:counts.entered},
+    {key:'loading', cls:'sc-loading', label:'Loading', count:counts.loading},
+    {key:'done',    cls:'sc-done',    label:'Done',    count:counts.done},
+    {key:'cancel',  cls:'sc-cancel',  label:'Cancel',  count:counts.cancel},
+  ];
+  bar.innerHTML = chips.map(c =>
+    `<div class="stat-chip ${c.cls} ${activeFilter===c.key?'active':''}" onclick="setFilter('${c.key}')">
+      ${c.label}<span class="chip-count">${c.count}</span>
+    </div>`
+  ).join('');
+}
+
+/* ═══ EDIT MODAL ═══ */
+function openEdit(id){
+  const row = PLAN.find(r => r._id === id);
+  if(!row) return;
+  editingId = id;
+  // Save original for diff
+  editOriginal = {
+    allowGate: row.allowGate||'',
+    allowLoad: row.allowLoad||'',
+    allowOut: row.allowOut||'OK',
+    qty: row.qty||'',
+    tolerance: row.tolerance||'',
+    note: row.note||''
+  };
+
+  document.getElementById('modalTitle').textContent = row.plate || 'Đơn hàng #' + row.no;
+  document.getElementById('fCustomer').value = row.customer||'';
+  document.getElementById('fPlate').value = row.plate||'';
+  document.getElementById('fRmooc').value = row.romooc||'';
+  document.getElementById('fDriver').value = row.driver||'';
+  document.getElementById('fDO').value = row.doNum||'';
+  document.getElementById('fQty').value = row.qty||'';
+  document.getElementById('fTol').value = row.tolerance||'';
+  document.getElementById('fNote').value = row.note||'';
+
+  // Set permission toggles
+  setPermToggle('allowGate', row.allowGate||'');
+  setPermToggle('allowLoad', row.allowLoad||'');
+  setPermToggle('allowOut', row.allowOut||'OK');
+
+  document.getElementById('editModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setPermToggle(field, val){
+  document.querySelectorAll(`.perm-toggle[data-field="${field}"]`).forEach(el => {
+    el.classList.remove('sel-ok','sel-no');
+    if(el.dataset.val === val){
+      el.classList.add(val === 'OK' ? 'sel-ok' : 'sel-no');
+    }
+  });
+}
+
+function togglePerm(el){
+  const field = el.dataset.field;
+  const val = el.dataset.val;
+  // Deselect siblings
+  el.parentElement.querySelectorAll('.perm-toggle').forEach(s => s.classList.remove('sel-ok','sel-no'));
+  el.classList.add(val === 'OK' ? 'sel-ok' : 'sel-no');
+}
+
+/* ═══ QUICK TOGGLE — inline change Gate/Load from list, no modal ═══ */
+function quickToggle(ev, id, field){
+  ev.stopPropagation(); // don't open modal
+  const badge = ev.currentTarget;
+  if(badge.classList.contains('saving')) return;
+  const row = PLAN.find(r => r._id === id);
+  if(!row) return;
+  const oldVal = row[field] || '';
+  // Cycle: blank/— → OK, OK → NO, NO → OK
+  const newVal = (oldVal === 'OK') ? 'NO' : 'OK';
+  badge.classList.add('saving');
+
+  row[field] = newVal;
+
+  // Deep-clean like full save
+  const clean = PLAN.map(r => {
+    const o = {};
+    Object.keys(r).forEach(k => { if(r[k] !== undefined) o[k] = r[k]; });
+    return o;
+  });
+
+  const fieldLbl = field === 'allowGate' ? 'Gate' : field === 'allowLoad' ? 'Load' : field;
+  const notifKey = 'sale_' + Date.now();
+  const notifData = {
+    type: 'edit',
+    title: `${row.plate||'—'} · ${fieldLbl} ${oldVal||'—'}→${newVal}`,
+    detail: `${row.customer||''} · DO ${row.doNum||'—'}`,
+    ts: Date.now(),
+    confirmed: false,
+    source: 'lpg-sale'
+  };
+
+  const updates = {};
+  updates['plan_today'] = clean;
+  updates['sale_notify/' + notifKey] = notifData;
+
+  FD.ref().update(updates).then(() => {
+    toast(`✓ ${row.plate||''} · ${fieldLbl}: ${newVal}`, newVal==='OK'?'ok':'er');
+    // render() will fire via listener with fresh data
+  }).catch(err => {
+    // Rollback on failure
+    row[field] = oldVal;
+    badge.classList.remove('saving');
+    toast('❌ Lỗi: ' + err.message, 'er');
+  });
+}
+
+function getPermVal(field){
+  const sel = document.querySelector(`.perm-toggle[data-field="${field}"].sel-ok, .perm-toggle[data-field="${field}"].sel-no`);
+  return sel ? sel.dataset.val : '';
+}
+
+function closeModal(){
+  document.getElementById('editModal').classList.remove('open');
+  document.body.style.overflow = '';
+  editingId = null;
+}
+
+/* ═══ SAVE ═══ */
+function saveChanges(){
+  if(editingId === null) return;
+  const row = PLAN.find(r => r._id === editingId);
+  if(!row){ toast('Không tìm thấy đơn hàng!','er'); return; }
+
+  const newGate = getPermVal('allowGate');
+  const newLoad = getPermVal('allowLoad');
+  const newOut = getPermVal('allowOut');
+  const newQty = document.getElementById('fQty').value.trim();
+  const newTol = document.getElementById('fTol').value.trim();
+  const newNote = document.getElementById('fNote').value.trim();
+
+  // Build diff
+  const changes = [];
+  if(newGate !== editOriginal.allowGate) changes.push(`Allow Gate: ${editOriginal.allowGate||'—'} → ${newGate||'—'}`);
+  if(newLoad !== editOriginal.allowLoad) changes.push(`Allow Load: ${editOriginal.allowLoad||'—'} → ${newLoad||'—'}`);
+  if(newOut !== editOriginal.allowOut) changes.push(`Allow Out: ${editOriginal.allowOut||'—'} → ${newOut||'—'}`);
+  if(newQty !== editOriginal.qty) changes.push(`Qty: ${editOriginal.qty||'—'} → ${newQty||'—'}`);
+  if(newTol !== editOriginal.tolerance) changes.push(`Tolerance: ${editOriginal.tolerance||'—'} → ${newTol||'—'}`);
+  if(newNote !== editOriginal.note) changes.push(`Note: ${editOriginal.note||'—'} → ${newNote||'—'}`);
+
+  if(!changes.length){
+    toast('Không có thay đổi','info');
+    closeModal();
+    return;
+  }
+
+  // Apply changes
+  row.allowGate = newGate;
+  row.allowLoad = newLoad;
+  row.allowOut = newOut;
+  row.qty = newQty;
+  row.tolerance = newTol;
+  row.note = newNote;
+
+  // Save to Firebase — deep-clean like main app
+  const clean = PLAN.map(r => {
+    const o = {};
+    Object.keys(r).forEach(k => { if(r[k] !== undefined) o[k] = r[k]; });
+    return o;
+  });
+
+  // Push notification to eng_notify for Scale Station
+  const notifKey = 'sale_' + Date.now();
+  const notifData = {
+    type: 'edit',
+    title: `${row.plate||'—'} (${row.customer||'—'})`,
+    detail: changes.join('\n'),
+    ts: Date.now(),
+    confirmed: false,
+    source: 'lpg-sale'
+  };
+
+  // Write both atomically
+  const updates = {};
+  updates['plan_today'] = clean;
+  updates['sale_notify/' + notifKey] = notifData;
+
+  FD.ref().update(updates).then(() => {
+    toast('✅ Đã lưu thay đổi','ok');
+    closeModal();
+  }).catch(err => {
+    toast('❌ Lỗi lưu: ' + err.message,'er');
+  });
+}
+
+/* ═══ HEADER SCROLL SHADOW ═══ */
+document.getElementById('content').addEventListener('scroll', function(){
+  document.getElementById('header').classList.toggle('scrolled', this.scrollTop > 4);
+});
+
+/* ═══ ADJUST CONTENT TOP based on actual header height ═══ */
+function adjustPadding(){
+  const h = document.getElementById('header').offsetHeight;
+  document.getElementById('content').style.paddingTop = h + 'px';
+}
+window.addEventListener('resize', adjustPadding);
+setTimeout(adjustPadding, 100);
+setTimeout(adjustPadding, 500);
+
+/* ═══ PULL TO REFRESH (visual only — data is real-time) ═══ */
+let ptrStart = 0, ptrActive = false;
+const content = document.getElementById('content');
+content.addEventListener('touchstart', e => {
+  if(content.scrollTop <= 0) ptrStart = e.touches[0].clientY;
+  else ptrStart = 0;
+}, {passive:true});
+content.addEventListener('touchmove', e => {
+  if(!ptrStart) return;
+  const dy = e.touches[0].clientY - ptrStart;
+  if(dy > 40 && !ptrActive){
+    ptrActive = true;
+    const ind = document.getElementById('ptrInd');
+    ind.classList.add('vis','spin');
+    setTimeout(() => {
+      ind.classList.remove('vis','spin');
+      ptrActive = false;
+      toast('Dữ liệu đã được cập nhật real-time','info');
+    }, 800);
+  }
+}, {passive:true});
+content.addEventListener('touchend', () => { ptrStart = 0; }, {passive:true});
+</script>
+</body>
+</html>
